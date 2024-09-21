@@ -1,0 +1,30 @@
+{
+  "type": "indicator",
+  "name": "indicator:MarketSessions",
+  "data": {
+    "id": "market-sessions",
+    "name": "Market Sessions",
+    "options": {
+      "priceScaleId": "market-sessions",
+      "scaleMargins": {
+        "top": 0.8,
+        "bottom": 0
+      },
+      "nyseColor": "rgba(0,128,0,0.7)",
+      "lseColor": "rgba(0,0,255,0.7)",
+      "tseColor": "rgba(255,0,0,0.7)",
+      "labelTextColor": "rgba(255,255,255,1)",
+      "labelSize": 12,
+      "showLabels": true,
+      "nyseStart": 13.5,
+      "nyseEnd": 20,
+      "lseStart": 8,
+      "lseEnd": 16.5,
+      "tseStart": 0,
+      "tseEnd": 6
+    },
+    "script": "// Market Sessions Indicator\nconst now = Date.now();\n$extra.createdAt = $extra.createdAt || now;\n$extra.updatedAt = now;\n\nfunction isInSession(hour, start, end) {\n  return start < end ? (hour >= start && hour < end) : (hour >= start || hour < end);\n}\n\nconst currentDate = new Date($time.timestamp);\nconst currentHour = currentDate.getUTCHours() + currentDate.getUTCMinutes() / 60;\n\nconst sessions = [\n  { name: 'NYSE', start: options.nyseStart, end: options.nyseEnd, color: options.nyseColor },\n  { name: 'LSE', start: options.lseStart, end: options.lseEnd, color: options.lseColor },\n  { name: 'TSE', start: options.tseStart, end: options.tseEnd, color: options.tseColor }\n];\n\nsessions.forEach((session, index) => {\n  if (typeof session.start !== 'number' || typeof session.end !== 'number') {\n    console.error(`Invalid start/end time for ${session.name}`);\n    return;\n  }\n\n  const isOpen = isInSession(currentHour, session.start, session.end);\n  const y = isOpen ? 1 : 0;\n\n  line(y, {\n    color: session.color,\n    title: session.name,\n    linewidth: 3\n  });\n\n  if (options.showLabels) {\n    const labelText = `${session.name} ${isOpen ? 'Open' : 'Closed'}`;\n    label(y + index * 0.1, {\n      text: labelText,\n      color: session.color,\n      textcolor: options.labelTextColor,\n      size: options.labelSize\n    });\n  }\n});",
+    "displayName": "Market Sessions",
+    "description": "Displays open and closed status for major global exchanges (NYSE, LSE, TSE) based on their trading hours.",
+  }
+}
